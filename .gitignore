@@ -8,7 +8,7 @@ __pycache__/
 *.manifest
 *.spec
 build/
-dist/
+
 
 # VS Code
 .vscode/
