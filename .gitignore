@@ -1,0 +1,17 @@
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# PyInstaller
+*.manifest
+*.spec
+build/
+dist/
+
+# VS Code
+.vscode/
+
+# Local PDF files (don't upload personal files)
+*.pdf
