@@ -7,11 +7,29 @@ import os
 import threading
 import sys
 import shutil
+import platform
 
 # 设置外观模式 (System, Dark, Light)
 ctk.set_appearance_mode("System")  
 # 设置默认颜色主题 (blue, dark-blue, green)
 ctk.set_default_color_theme("blue")
+
+# Font configuration based on system
+if platform.system() == "Windows":
+    DEFAULT_FONT = "Microsoft YaHei UI"
+    TITLE_FONT_SIZE = 22
+    NORMAL_FONT_SIZE = 12
+    SMALL_FONT_SIZE = 11
+elif platform.system() == "Darwin":  # macOS
+    DEFAULT_FONT = "PingFang SC"
+    TITLE_FONT_SIZE = 24
+    NORMAL_FONT_SIZE = 13
+    SMALL_FONT_SIZE = 12
+else:  # Linux
+    DEFAULT_FONT = "Noto Sans CJK SC"
+    TITLE_FONT_SIZE = 22
+    NORMAL_FONT_SIZE = 12
+    SMALL_FONT_SIZE = 11
 
 # Language dictionary
 LANGUAGES = {
@@ -88,7 +106,7 @@ class WatermarkRemoverApp(ctk.CTk):
         
         # --- 窗口基本配置 ---
         self.title(self.t("window_title"))
-        self.geometry("700x580")
+        self.geometry("800x600")  # Increased width to accommodate English text
         
         # --- 布局配置 ---
         self.grid_columnconfigure(0, weight=1)
@@ -101,17 +119,21 @@ class WatermarkRemoverApp(ctk.CTk):
         self.grid_rowconfigure(6, weight=1) # Log
 
         # 1. 标题
-        self.lbl_title = ctk.CTkLabel(self, text=self.t("title"), font=ctk.CTkFont(size=24, weight="bold"))
+        self.lbl_title = ctk.CTkLabel(self, text=self.t("title"), 
+                                      font=ctk.CTkFont(family=DEFAULT_FONT, size=TITLE_FONT_SIZE, weight="bold"))
         self.lbl_title.grid(row=0, column=0, padx=20, pady=(20, 10))
         
         # 2. 语言切换
         self.lang_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.lang_frame.grid(row=1, column=0, padx=20, pady=5, sticky="e")
         
-        self.lbl_lang = ctk.CTkLabel(self.lang_frame, text=self.t("language") + ":", font=ctk.CTkFont(size=12))
+        self.lbl_lang = ctk.CTkLabel(self.lang_frame, text=self.t("language") + ":", 
+                                     font=ctk.CTkFont(family=DEFAULT_FONT, size=SMALL_FONT_SIZE))
         self.lbl_lang.pack(side="left", padx=5)
         
-        self.lang_switch = ctk.CTkSegmentedButton(self.lang_frame, values=["中文", "English"], command=self.switch_language)
+        self.lang_switch = ctk.CTkSegmentedButton(self.lang_frame, values=["中文", "English"], 
+                                                   command=self.switch_language,
+                                                   font=ctk.CTkFont(family=DEFAULT_FONT, size=SMALL_FONT_SIZE))
         self.lang_switch.set("中文")
         self.lang_switch.pack(side="left")
 
@@ -120,43 +142,60 @@ class WatermarkRemoverApp(ctk.CTk):
         self.input_frame.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
         self.input_frame.grid_columnconfigure(0, weight=1)
 
-        self.entry_path = ctk.CTkEntry(self.input_frame, placeholder_text=self.t("placeholder"))
+        self.entry_path = ctk.CTkEntry(self.input_frame, placeholder_text=self.t("placeholder"),
+                                       font=ctk.CTkFont(family=DEFAULT_FONT, size=NORMAL_FONT_SIZE))
         self.entry_path.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
 
-        self.btn_browse_file = ctk.CTkButton(self.input_frame, text=self.t("select_file"), command=self.browse_file, width=100)
+        self.btn_browse_file = ctk.CTkButton(self.input_frame, text=self.t("select_file"), 
+                                             command=self.browse_file, width=110,
+                                             font=ctk.CTkFont(family=DEFAULT_FONT, size=NORMAL_FONT_SIZE))
         self.btn_browse_file.grid(row=0, column=1, padx=5, pady=10)
         
-        self.btn_browse_folder = ctk.CTkButton(self.input_frame, text=self.t("select_folder"), command=self.browse_folder, width=100)
+        self.btn_browse_folder = ctk.CTkButton(self.input_frame, text=self.t("select_folder"), 
+                                               command=self.browse_folder, width=120,
+                                               font=ctk.CTkFont(family=DEFAULT_FONT, size=NORMAL_FONT_SIZE))
         self.btn_browse_folder.grid(row=0, column=2, padx=(5, 10), pady=10)
 
         # 4. 参数配置区域 (高级设置)
         self.settings_frame = ctk.CTkFrame(self)
         self.settings_frame.grid(row=3, column=0, padx=20, pady=10, sticky="ew")
+        self.settings_frame.grid_columnconfigure(6, weight=1)  # Make last column expandable
         
-        self.lbl_settings = ctk.CTkLabel(self.settings_frame, text=self.t("settings"), font=ctk.CTkFont(weight="bold"))
-        self.lbl_settings.grid(row=0, column=0, padx=10, pady=5, sticky="w")
+        self.lbl_settings = ctk.CTkLabel(self.settings_frame, text=self.t("settings"), 
+                                         font=ctk.CTkFont(family=DEFAULT_FONT, size=NORMAL_FONT_SIZE, weight="bold"))
+        self.lbl_settings.grid(row=0, column=0, columnspan=7, padx=10, pady=5, sticky="w")
         
         # 宽度
-        self.lbl_w = ctk.CTkLabel(self.settings_frame, text=self.t("width"))
-        self.lbl_w.grid(row=1, column=0, padx=(10, 5), pady=5)
-        self.entry_w = ctk.CTkEntry(self.settings_frame, width=60)
+        self.lbl_w = ctk.CTkLabel(self.settings_frame, text=self.t("width"),
+                                  font=ctk.CTkFont(family=DEFAULT_FONT, size=SMALL_FONT_SIZE))
+        self.lbl_w.grid(row=1, column=0, padx=(10, 2), pady=5, sticky="e")
+        self.entry_w = ctk.CTkEntry(self.settings_frame, width=55,
+                                    font=ctk.CTkFont(family=DEFAULT_FONT, size=SMALL_FONT_SIZE))
         self.entry_w.insert(0, "120") # 默认值，来自用户之前的调整
-        self.entry_w.grid(row=1, column=1, padx=5, pady=5)
+        self.entry_w.grid(row=1, column=1, padx=2, pady=5)
         
         # 高度
-        self.lbl_h = ctk.CTkLabel(self.settings_frame, text=self.t("height"))
-        self.lbl_h.grid(row=1, column=2, padx=(10, 5), pady=5)
-        self.entry_h = ctk.CTkEntry(self.settings_frame, width=60)
+        self.lbl_h = ctk.CTkLabel(self.settings_frame, text=self.t("height"),
+                                  font=ctk.CTkFont(family=DEFAULT_FONT, size=SMALL_FONT_SIZE))
+        self.lbl_h.grid(row=1, column=2, padx=(10, 2), pady=5, sticky="e")
+        self.entry_h = ctk.CTkEntry(self.settings_frame, width=55,
+                                    font=ctk.CTkFont(family=DEFAULT_FONT, size=SMALL_FONT_SIZE))
         self.entry_h.insert(0, "30") # 默认值，来自用户之前的调整
-        self.entry_h.grid(row=1, column=3, padx=5, pady=5)
+        self.entry_h.grid(row=1, column=3, padx=2, pady=5)
         
         # 调试模式开关
-        self.chk_debug = ctk.CTkCheckBox(self.settings_frame, text=self.t("debug_mode"), command=self.toggle_debug)
+        self.chk_debug = ctk.CTkCheckBox(self.settings_frame, text=self.t("debug_mode"), 
+                                         command=self.toggle_debug,
+                                         font=ctk.CTkFont(family=DEFAULT_FONT, size=SMALL_FONT_SIZE))
         self.chk_debug.grid(row=1, column=4, padx=20, pady=5)
         
         # 开始按钮
-        self.btn_start = ctk.CTkButton(self.settings_frame, text=self.t("start"), command=self.start_processing_thread, fg_color="green", hover_color="darkgreen", height=40)
-        self.btn_start.grid(row=1, column=5, padx=20, pady=10, sticky="e")
+        self.btn_start = ctk.CTkButton(self.settings_frame, text=self.t("start"), 
+                                       command=self.start_processing_thread, 
+                                       fg_color="green", hover_color="darkgreen", 
+                                       height=35, width=130,
+                                       font=ctk.CTkFont(family=DEFAULT_FONT, size=NORMAL_FONT_SIZE, weight="bold"))
+        self.btn_start.grid(row=1, column=5, padx=10, pady=5, sticky="w")
 
         # 5. 进度条
         self.progress_bar = ctk.CTkProgressBar(self)
@@ -167,14 +206,18 @@ class WatermarkRemoverApp(ctk.CTk):
         self.log_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.log_frame.grid(row=5, column=0, padx=20, pady=(10, 0), sticky="ew")
         
-        self.lbl_log = ctk.CTkLabel(self.log_frame, text=self.t("log_title"), font=ctk.CTkFont(weight="bold"))
+        self.lbl_log = ctk.CTkLabel(self.log_frame, text=self.t("log_title"), 
+                                    font=ctk.CTkFont(family=DEFAULT_FONT, size=NORMAL_FONT_SIZE, weight="bold"))
         self.lbl_log.pack(side="left")
         
-        self.btn_clear_log = ctk.CTkButton(self.log_frame, text=self.t("clear_log"), command=self.clear_log, width=80, height=24)
+        self.btn_clear_log = ctk.CTkButton(self.log_frame, text=self.t("clear_log"), 
+                                           command=self.clear_log, width=90, height=26,
+                                           font=ctk.CTkFont(family=DEFAULT_FONT, size=SMALL_FONT_SIZE))
         self.btn_clear_log.pack(side="right")
 
         # 7. 日志输出文本框
-        self.textbox_log = ctk.CTkTextbox(self, width=650)
+        self.textbox_log = ctk.CTkTextbox(self, width=750,
+                                          font=ctk.CTkFont(family=DEFAULT_FONT, size=SMALL_FONT_SIZE))
         self.textbox_log.grid(row=6, column=0, padx=20, pady=10, sticky="nsew")
         self.log(self.t("ready"))
 
