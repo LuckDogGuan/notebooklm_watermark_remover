@@ -186,6 +186,9 @@ class WatermarkRemoverApp(ctk.CTk):
         """Switch between Chinese and English"""
         self.current_lang = "zh" if value == "中文" else "en"
         self.update_ui_text()
+        # Clear log and show ready message in new language
+        self.clear_log()
+        self.log(self.t("ready"))
     
     def update_ui_text(self):
         """Update all UI text elements"""
